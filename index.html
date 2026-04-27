@@ -340,7 +340,7 @@ function renderT(){
   document.getElementById('t-lista').innerHTML=D.temas.map(function(t){ return '<div class="ev-item"><span>'+t+'</span><span class="ev-st">'+(usos[t]||0)+' uso(s) <button type="button" onclick="delTema(this.dataset.t)" data-t="'+t+'" style="background:none;border:none;color:#CCC;cursor:pointer;font-size:16px;">×</button></span></div>'; }).join('');
 }
 function criarTema(){ var n=document.getElementById('t-novo').value.trim(); if(!n) return; if(!D.temas.includes(n)){ D.temas.push(n); sv(); } document.getElementById('t-novo').value=''; renderT(); renderTags(); }
-function delTema(el){ var t=el.dataset?el.dataset.t:el; if(!confirm('Excluir "'+t+'"?')) return; D.temas=D.temas.filter(function(x){ return x!==t; }); sv(); renderT(); renderTags(); }
+function delTema(t){ if(!confirm('Excluir "'+t+'"?')) return; D.temas=D.temas.filter(function(x){ return x!==t; }); sv(); renderT(); renderTags(); }
 function verificarEv(){ var b=document.getElementById('t-evbusca').value.trim().toLowerCase(); var c=document.getElementById('t-evres'); if(!b){ c.innerHTML=''; return; } var gs=D.gravacoes.filter(function(g){ return g.ev.toLowerCase().includes(b); }); c.innerHTML=gs.length?'<div class="alerta" style="background:#FFF0F0;border-color:#8B1A1A;color:#8B1A1A;">⚠️ Gravado '+gs.length+'×:<br>'+gs.map(function(g){ return '<strong>'+fmtData(g.data)+'</strong> — '+g.titulo; }).join('<br>')+'</div>':'<div class="alerta">✅ Ainda não gravado!</div>'; }
 function renderR(){
   var total=D.gravacoes.length; var radio=D.gravacoes.filter(function(g){ return (g.canais||[]).includes('radio'); }).length;
@@ -354,18 +354,66 @@ function renderR(){
 function exportar(){ var b=new Blob([JSON.stringify(D,null,2)],{type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='amigo-catolico.json'; a.click(); }
 function limpar(){ if(!confirm('⚠️ Apagar TUDO?')) return; D={gravacoes:[],temas:["Misericórdia","Fé","Oração","Perdão","Amor ao próximo","Conversão","Esperança","Família","Evangelização","Gratidão"]}; sv(); renderH(); renderT(); renderR(); alert('Apagado.'); }
 function getDiasGrav(){ var m={}; D.gravacoes.forEach(function(g){ if(g.diaId){ if(!m[g.diaId]) m[g.diaId]=[]; m[g.diaId].push(g); } }); return m; }
-function renderCicloTabs(){ document.getElementById('ciclo-tabs').innerHTML=Object.keys(CAL).map(function(k){ return '<button type="button" class="ciclo-btn'+(k===cicloAtivo?' on':'')+'" onclick="setCiclo(''+k+'')">'+k+'</button>'; }).join(''); }
+function renderCicloTabs(){
+  var c=document.getElementById('ciclo-tabs'); c.innerHTML='';
+  Object.keys(CAL).forEach(function(k){
+    var b=document.createElement('button'); b.type='button';
+    b.className='ciclo-btn'+(k===cicloAtivo?' on':'');
+    b.textContent=k; b.dataset.ciclo=k;
+    b.onclick=function(){ setCiclo(this.dataset.ciclo); };
+    c.appendChild(b);
+  });
+}
 function setCiclo(c){ cicloAtivo=c; renderCicloTabs(); renderLit(); }
 function renderLit(){
   var tempos=CAL[cicloAtivo]; var grav=getDiasGrav(); var total=0,gravados=0;
   Object.values(tempos).forEach(function(dias){ total+=dias.length; dias.forEach(function(d){ if(grav[d.id]&&grav[d.id].length) gravados++; }); });
   var pct=total?Math.round(gravados/total*100):0;
-  document.getElementById('l-prog').innerHTML='<div class="prog-box"><div style="display:flex;justify-content:space-between;"><span style="font-family:Playfair Display,serif;font-size:15px;color:#4A1628;font-weight:700;">'+cicloAtivo+'</span><span style="font-size:13px;color:#2D6A4F;font-weight:600;">'+gravados+'/'+total+'</span></div><div class="barra"><div class="barra-fill" style="width:'+pct+'%"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:#7A6E6E;"><span>'+pct+'% concluído</span><span>'+(total-gravados)+' faltando</span></div></div>';
-  var cores={"Advento":"#6B3FA0","Natal":"#C9A84C","Quaresma":"#6B3FA0","Tríduo Pascal":"#8B1A1A","Tempo Pascal":"#C9A84C","Tempo Comum":"#2D6A4F","Festas":"#C9A84C"};
-  document.getElementById('l-lista').innerHTML=Object.entries(tempos).map(function(entry){
-    var tempo=entry[0],dias=entry[1]; var gt=dias.filter(function(d){ return grav[d.id]&&grav[d.id].length; }).length; var cor=cores[tempo]||'#C9A84C';
-    return '<div class="tempo-box"><button type="button" class="tempo-hdr" style="border-left:4px solid '+cor+';" onclick="this.nextElementSibling.classList.toggle('ab')"><div><div class="tempo-nome">'+tempo+'</div><div style="font-size:11px;color:#7A6E6E;">'+dias.length+' dias</div></div><div class="tempo-prog"><strong style="font-size:14px;color:#2D6A4F;">'+gt+'</strong>/'+dias.length+'</div></button><div class="tempo-dias">'+dias.map(function(d){ var gs=grav[d.id]||[]; var dc=gs.length>1?'g2':gs.length===1?'g1':''; var cc=gs.length>1?'multi':gs.length===1?'ok':''; var ct=gs.length===0?'não gravado':gs.length===1?'✓ 1×':'✓ '+gs.length+'×'; return '<div class="dia-item" onclick="abrirDia(''+d.id+'',''+cicloAtivo+'')"><div class="dia-dot '+dc+'"></div><div class="dia-info"><div class="dia-nome">'+d.nome+'</div><div class="dia-ev">'+d.ev+'</div></div><div class="dia-cnt '+cc+'">'+ct+'</div></div>'; }).join('')+'</div></div>';
-  }).join('');
+ 
+  var prog=document.getElementById('l-prog'); prog.innerHTML='';
+  var pb=document.createElement('div'); pb.className='prog-box';
+  pb.innerHTML='<div style="display:flex;justify-content:space-between;"><span style="font-family:serif;font-size:15px;color:#4A1628;font-weight:700;">'+cicloAtivo+'</span><span style="font-size:13px;color:#2D6A4F;font-weight:600;">'+gravados+'/'+total+'</span></div><div class="barra"><div class="barra-fill" style="width:'+pct+'%"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:#7A6E6E;"><span>'+pct+'% concluido</span><span>'+(total-gravados)+' faltando</span></div>';
+  prog.appendChild(pb);
+ 
+  var cores={"Advento":"#6B3FA0","Natal":"#C9A84C","Quaresma":"#6B3FA0","Triduo Pascal":"#8B1A1A","Tempo Pascal":"#C9A84C","Tempo Comum":"#2D6A4F","Festas":"#C9A84C"};
+  var lista=document.getElementById('l-lista'); lista.innerHTML='';
+ 
+  Object.entries(tempos).forEach(function(entry){
+    var tempo=entry[0], dias=entry[1];
+    var gt=dias.filter(function(d){ return grav[d.id]&&grav[d.id].length; }).length;
+    var cor=cores[tempo]||'#C9A84C';
+ 
+    var box=document.createElement('div'); box.className='tempo-box';
+ 
+    var hdr=document.createElement('button'); hdr.type='button'; hdr.className='tempo-hdr';
+    hdr.style.borderLeft='4px solid '+cor;
+    hdr.innerHTML='<div><div class="tempo-nome">'+tempo+'</div><div style="font-size:11px;color:#7A6E6E;">'+dias.length+' dias</div></div><div class="tempo-prog"><strong style="font-size:14px;color:#2D6A4F;">'+gt+'</strong>/'+dias.length+'</div>';
+    hdr.onclick=function(){ this.nextElementSibling.classList.toggle('ab'); };
+ 
+    var diasDiv=document.createElement('div'); diasDiv.className='tempo-dias';
+ 
+    dias.forEach(function(d){
+      var gs=grav[d.id]||[];
+      var dc=gs.length>1?'g2':gs.length===1?'g1':'';
+      var cc=gs.length>1?'multi':gs.length===1?'ok':'';
+      var ct=gs.length===0?'nao gravado':gs.length===1?'1 gravacao':gs.length+' gravacoes';
+ 
+      var dItem=document.createElement('div'); dItem.className='dia-item';
+      dItem.dataset.id=d.id; dItem.dataset.ciclo=cicloAtivo;
+      dItem.onclick=function(){ abrirDia(this.dataset.id, this.dataset.ciclo); };
+ 
+      var dot=document.createElement('div'); dot.className='dia-dot '+dc;
+      var info=document.createElement('div'); info.className='dia-info';
+      info.innerHTML='<div class="dia-nome">'+d.nome+'</div><div class="dia-ev">'+d.ev+'</div>';
+      var cnt=document.createElement('div'); cnt.className='dia-cnt '+cc; cnt.textContent=ct;
+ 
+      dItem.appendChild(dot); dItem.appendChild(info); dItem.appendChild(cnt);
+      diasDiv.appendChild(dItem);
+    });
+ 
+    box.appendChild(hdr); box.appendChild(diasDiv);
+    lista.appendChild(box);
+  });
 }
 function abrirDia(id,ciclo){ modalDiaId=id; modalCiclo=ciclo; var tempos=CAL[ciclo]; var dia=null; Object.values(tempos).forEach(function(dias){ dias.forEach(function(d){ if(d.id===id) dia=d; }); }); if(!dia) return; document.getElementById('m-titulo').textContent=dia.nome; document.getElementById('m-sub').textContent='Evangelho: '+dia.ev+' · '+ciclo; var gs=(getDiasGrav()[id]||[]); document.getElementById('m-corpo').innerHTML=gs.length?gs.map(function(g){ return '<div class="modal-grav"><div style="font-size:11px;color:#7A6E6E;">'+fmtData(g.data)+'</div><div style="font-family:Playfair Display,serif;font-size:14px;color:#4A1628;margin:3px 0;">'+g.titulo+'</div>'+(g.msg?'<div style="font-size:12px;margin-top:4px;">'+g.msg.substring(0,120)+'</div>':'')+'</div>'; }).join(''):'<div class="vazio" style="padding:16px;"><span>🎙️</span>Ainda não gravado!</div>'; document.getElementById('modal').classList.add('ab'); }
 function fecharModalBtn(){ document.getElementById('modal').classList.remove('ab'); }
