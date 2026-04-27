@@ -109,11 +109,11 @@ textarea{resize:vertical;min-height:75px;}
 </header>
  
 <div class="tabs">
-  <a class="tab ativo" id="tab-nova" href="#" onclick="ir('nova');return false;">📝 Nova<br>Gravação</a>
-  <a class="tab" id="tab-historico" href="#" onclick="ir('historico');return false;">📖 Histórico</a>
-  <a class="tab" id="tab-liturgico" href="#" onclick="ir('liturgico');return false;">🗓️ Litúrgico</a>
-  <a class="tab" id="tab-temas" href="#" onclick="ir('temas');return false;">🏷️ Temas</a>
-  <a class="tab" id="tab-resumo" href="#" onclick="ir('resumo');return false;">📊 Resumo</a>
+  <button class="tab ativo" id="tab-nova" type="button" onclick="ir('nova')">📝 Nova<br>Gravação</button>
+  <button class="tab" id="tab-historico" type="button" onclick="ir('historico')">📖 Histórico</button>
+  <button class="tab" id="tab-liturgico" type="button" onclick="ir('liturgico')">🗓️ Litúrgico</button>
+  <button class="tab" id="tab-temas" type="button" onclick="ir('temas')">🏷️ Temas</button>
+  <button class="tab" id="tab-resumo" type="button" onclick="ir('resumo')">📊 Resumo</button>
 </div>
  
 <div class="content">
@@ -267,6 +267,16 @@ function ir(aba) {
  
 // ===== INIT =====
 window.addEventListener('load', function(){
+  // Add touch listeners for Safari iOS
+  ['nova','historico','liturgico','temas','resumo'].forEach(function(aba){
+    var t = document.getElementById('tab-'+aba);
+    if(t) {
+      t.addEventListener('touchstart', function(e){
+        e.preventDefault();
+        ir(aba);
+      }, {passive:false});
+    }
+  });
   document.getElementById('f-data').value = hoje();
   renderTags();
   popularCicloSelect();
