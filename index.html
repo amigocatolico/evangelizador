@@ -328,10 +328,10 @@ function renderH(){
   var fc=(document.getElementById('h-canal')||{}).value||'';
   var ft=(document.getElementById('h-tema')||{}).value||'';
   var sel=document.getElementById('h-tema');
-  if(sel){ var av=sel.value; sel.innerHTML='<option value="">Todos os temas</option>'; D.temas.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; if(t===av) o.selected=true; sel.appendChild(o); }); }
+  if(sel){ var av=sel.value; while(sel.firstChild) sel.removeChild(sel.firstChild); var def=document.createElement('option'); def.value=''; def.textContent='Todos os temas'; sel.appendChild(def); D.temas.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; if(t===av) o.selected=true; sel.appendChild(o); }); }
   var lista=D.gravacoes.filter(function(g){ var txt=(g.ev+' '+g.titulo+' '+(g.msg||'')+' '+(g.temas||[]).join(' ')).toLowerCase(); return (!busca||txt.includes(busca))&&(!fc||(g.canais||[]).includes(fc))&&(!ft||(g.temas||[]).includes(ft)); });
   var c=document.getElementById('h-lista');
-  if(!lista.length){ c.innerHTML='<div class="vazio"><span>📖</span>Nenhuma gravação encontrada.</div>'; return; }
+  if(!lista.length){ c.innerHTML='<div class=vazio><span>📖</span>Nenhuma gravação encontrada.</div>'; return; }
   c.innerHTML=lista.map(function(g){ return '<div class="card-mini"><button type="button" class="btn-del" onclick="del('+g.id+')">×</button><div class="reg-data">'+fmtData(g.data)+(g.ciclo?' · '+g.ciclo:'')+'</div><div class="reg-ev">📖 '+g.ev+'</div><div class="reg-tema">'+g.titulo+'</div>'+(g.temas&&g.temas.length?'<div class="reg-tags">'+g.temas.map(function(t){ return '<span class="tag-mini">'+t+'</span>'; }).join('')+'</div>':'')+'<div>'+(g.canais||[]).map(function(c){ return '<span class="badge" style="background:'+canalCor(c)+'">'+canalNome(c)+'</span>'; }).join('')+'</div>'+(g.obs?'<div style="font-size:11px;color:#7A6E6E;margin-top:4px;font-style:italic;">💬 '+g.obs+'</div>':'')+'</div>'; }).join('');
 }
 function del(id){ if(!confirm('Excluir?')) return; D.gravacoes=D.gravacoes.filter(function(g){ return g.id!==id; }); sv(); renderH(); renderR(); }
