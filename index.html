@@ -337,10 +337,10 @@ function renderH(){
 function del(id){ if(!confirm('Excluir?')) return; D.gravacoes=D.gravacoes.filter(function(g){ return g.id!==id; }); sv(); renderH(); renderR(); }
 function renderT(){
   var usos={}; D.gravacoes.forEach(function(g){ (g.temas||[]).forEach(function(t){ usos[t]=(usos[t]||0)+1; }); });
-  document.getElementById('t-lista').innerHTML=D.temas.map(function(t){ return '<div class="ev-item"><span>'+t+'</span><span class="ev-st">'+( usos[t]||0)+' uso(s) <button type="button" onclick="delTema(''+t+'')" style="background:none;border:none;color:#CCC;cursor:pointer;font-size:16px;">×</button></span></div>'; }).join('');
+  document.getElementById('t-lista').innerHTML=D.temas.map(function(t){ return '<div class="ev-item"><span>'+t+'</span><span class="ev-st">'+(usos[t]||0)+' uso(s) <button type="button" onclick="delTema(this.dataset.t)" data-t="'+t+'" style="background:none;border:none;color:#CCC;cursor:pointer;font-size:16px;">×</button></span></div>'; }).join('');
 }
 function criarTema(){ var n=document.getElementById('t-novo').value.trim(); if(!n) return; if(!D.temas.includes(n)){ D.temas.push(n); sv(); } document.getElementById('t-novo').value=''; renderT(); renderTags(); }
-function delTema(t){ if(!confirm('Excluir "'+t+'"?')) return; D.temas=D.temas.filter(function(x){ return x!==t; }); sv(); renderT(); renderTags(); }
+function delTema(el){ var t=el.dataset?el.dataset.t:el; if(!confirm('Excluir "'+t+'"?')) return; D.temas=D.temas.filter(function(x){ return x!==t; }); sv(); renderT(); renderTags(); }
 function verificarEv(){ var b=document.getElementById('t-evbusca').value.trim().toLowerCase(); var c=document.getElementById('t-evres'); if(!b){ c.innerHTML=''; return; } var gs=D.gravacoes.filter(function(g){ return g.ev.toLowerCase().includes(b); }); c.innerHTML=gs.length?'<div class="alerta" style="background:#FFF0F0;border-color:#8B1A1A;color:#8B1A1A;">⚠️ Gravado '+gs.length+'×:<br>'+gs.map(function(g){ return '<strong>'+fmtData(g.data)+'</strong> — '+g.titulo; }).join('<br>')+'</div>':'<div class="alerta">✅ Ainda não gravado!</div>'; }
 function renderR(){
   var total=D.gravacoes.length; var radio=D.gravacoes.filter(function(g){ return (g.canais||[]).includes('radio'); }).length;
