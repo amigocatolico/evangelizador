@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teste</title>
+<style>
+body{margin:0;font-family:sans-serif;background:#2D0D18;}
+.tabs{display:flex;background:#4A1628;border-bottom:2px solid #C9A84C;}
+.tab{flex:1;padding:12px 4px;text-align:center;color:rgba(232,201,122,0.6);border:none;background:none;border-bottom:3px solid transparent;font-size:12px;cursor:pointer;-webkit-appearance:none;}
+.tab.ativo{color:#E8C97A;border-bottom:3px solid #C9A84C;background:rgba(201,168,76,0.1);}
+.content{background:#F5F0E8;min-height:100vh;padding:20px;}
+.panel{display:none;}
+.panel.ativo{display:block;}
+.card{background:white;border-radius:10px;padding:20px;font-size:18px;}
+</style>
+</head>
+<body>
+<div class="tabs">
+  <button class="tab ativo" type="button" id="t1" onclick="ir('p1')">📝 Aba 1</button>
+  <button class="tab" type="button" id="t2" onclick="ir('p2')">📖 Aba 2</button>
+  <button class="tab" type="button" id="t3" onclick="ir('p3')">🗓️ Aba 3</button>
+</div>
+<div class="content">
+  <div id="p1" class="panel ativo"><div class="card">✅ Aba 1 funcionando!</div></div>
+  <div id="p2" class="panel"><div class="card">✅ Aba 2 funcionando!</div></div>
+  <div id="p3" class="panel"><div class="card">✅ Aba 3 funcionando!</div></div>
+</div>
+<script>
+function ir(id){
+  ['p1','p2','p3'].forEach(function(p,i){
+    document.getElementById(p).style.display = p===id?'block':'none';
+    document.getElementById('t'+(i+1)).className = 'tab'+(p===id?' ativo':'');
+  });
+}
+</script>
+</body>
+</html>
